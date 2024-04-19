@@ -25,6 +25,10 @@
 
       <script type="text/javascript">
         var expedientes = []
+        var calendar;
+        /*------------Get Site URL----*/
+        var SITEURL = "{{ url('/') }}";
+
         function getExpedientes(){
         var id = window.location.pathname.slice(-1)
         //voluntarioHorarios/{id}
@@ -34,7 +38,8 @@
                 dataType: 'json', 
                 success: function(response) {
                     expedientes = response
-                    // console.log(expedientes)
+                    console.log(expedientes)
+                    initCalendar()
                 },
                 error: function(xhr, status, error) {
                     console.error('Erro na requisição:', error);
@@ -42,19 +47,19 @@
             });
        }
         $(document).ready(function () {
-            getExpedientes()
-        
-    /*------------Get Site URL----*/
-       var SITEURL = "{{ url('/') }}";
-       /*-------------- CSRF Token------*/
-       $.ajaxSetup({
-           headers: {
-           'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-           }
-       });
+          
+        /*-------------- CSRF Token------*/
+        $.ajaxSetup({
+            headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
      
-       /*------FullCalendar JS Code------*/
-       var calendar = $('#calendar').fullCalendar({
+        getExpedientes()
+       });
+ /*------FullCalendar JS Code------*/
+       function initCalendar(){
+        calendar = $('#calendar').fullCalendar({
                        header: {
                            left: 'prev,next',
                            center: 'title',
@@ -85,10 +90,10 @@
                             day:      'Dia',
                         },
                         height: 'auto', 
-                       businessHours: [], 
+                       businessHours: expedientes, 
                        eventRender: function (event, element, view) { //por que event render só é executada ao clicar? 
                            event.allDay = false;
-                           calendar.fullCalendar('option', 'businessHours', expedientes);
+                        //    calendar.fullCalendar('option', 'businessHours', expedientes);
                         //     expedientes.forEach(expediente => {
                         //         calendar.fullCalendar('option', 'businessHours', expediente);
                         //         console.log(expediente)
@@ -102,6 +107,11 @@
                         var title = 'Consulta agendada';
                         var start = $.fullCalendar.formatDate(start, "Y-MM-DD H:mm");
                         var end = $.fullCalendar.formatDate(end, "Y-MM-DD H:mm");
+                        /*validateAvailbleExpedient(){
+                            algoritmo para pegar o dia da semana da data de início (start.getDay())
+                            procurar se o dia existe na variável expediente, se sim, validar o intervalo de hora.
+                            Essa validação também deverá ser feita no back-end.
+                        }*/
                         Swal.fire({
                             title: "Gostaria de marcar consulta nesse horário?",
                             showDenyButton: false,
@@ -179,7 +189,9 @@
                            }
                        }
                    });
-       });
+                }
+       
+       
        /*---------Toastr Success ------------*/
        function displayMessage(message) {
            toastr.success(message, 'SUCESSO');
